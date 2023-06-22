@@ -25,7 +25,7 @@ app.get('/notes', (req, res) =>
 //API Routes
 app.get('/api/notes', (req, res) => {
   // Send a message to the client
-  res.status(200).json(`${req.method} request received to get notes`);
+  res.sendFile(path.join(__dirname, '/db/db.json'))
 
   // Log our request to the terminal
   console.info(`${req.method} request received to get notes`);
@@ -49,7 +49,7 @@ app.post('/api/notes', (req, res) => {
     };
 
     // Obtain existing notes
-    fs.readFile('./db/notes.json', 'utf8', (err, data) => {
+    fs.readFile('./db/db.json', 'utf8', (err, data) => {
       if (err) {
         console.error(err);
       } else {
@@ -83,7 +83,26 @@ app.post('/api/notes', (req, res) => {
   }
 });
 
-//app.delete('/api/:note_id')
+app.delete('/api/notes/:note_id', (req, res) => {
+  const noteID = req.params.note_id;
+  fs.readFile('./db/db.json', 'utf8', (err, data) => {
+    if (err) {
+      console.error(err);
+      res.sendStatus(500)
+    }
+    const newCollection = JSON.parse(data).filter(i => i.note_id != noteID)
+    console.log(newCollection)
+    fs.writeFile(
+      './db/db.json',
+      JSON.stringify(newCollection, null, 4),
+      (writeErr) =>
+        writeErr
+          ? console.error(writeErr)
+          : res.send(200)
+    );
+  })
+
+})
 
 app.listen(PORT, () =>
   console.log(`App listening at http://localhost:${PORT} 🚀`)
